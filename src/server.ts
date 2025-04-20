@@ -1,18 +1,26 @@
 import express, { Application } from "express";
 import dotenv from "dotenv";
-import routes from "./routes/index"; // Import routes
+import routes from "./routes/index";
+import { connectDataBase } from "./models";
 
-dotenv.config(); // Load environment variables
+dotenv.config();
 
 const app: Application = express();
 const port: string = process.env.PORT || "3000";
 
-// Middleware (e.g., to parse JSON)
+// Middleware
 app.use(express.json());
 
 // Register Routes
 app.use("/api", routes);
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+connectDataBase()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.log("Failed to connnect database: ", err);
+    process.exit(1);
+  });
