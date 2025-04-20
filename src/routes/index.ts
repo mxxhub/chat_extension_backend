@@ -1,11 +1,8 @@
-import { Router } from "express";
-const router: Router = Router();
-import { addUser } from "../controllers/addUser";
+import express, { Application } from "express";
+import authRoutes from "./authRoutes";
+import messageRoutes from "./messageRoutes";
 
-router.post("/addNewUser", addUser);
+const app: Application = express();
 
-router.get("/test", (req, res) => {
-  res.send("Hello, world!");
-});
-
-export default router;
+app.use("auth", authRoutes);
+app.use("messages", messageRoutes);

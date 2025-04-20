@@ -1,16 +1,38 @@
-import mongoose from "mongoose";
-const Schema = mongoose.Schema;
+import mongoose, { Document, Schema } from "mongoose";
 
-const userSchema = new Schema(
+export interface IUser {
+  username: string;
+  password: string;
+  avatar?: string;
+  isOnline: boolean;
+  lastSeen: Date;
+}
+
+const UserSchema = new Schema<IUser>(
   {
-    userId: { type: String, default: "", required: true, unique: true },
-    twitterAdd: { type: String, default: "", required: true, unique: true },
-    walletAdd: { type: String, default: "", required: true, unique: true },
-    channels: { type: Array, default: [] },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: 3,
+    },
+    avatar: {
+      type: String,
+      default: "",
+    },
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
+    lastSeen: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-export const User = mongoose.model("users", userSchema);
+export default mongoose.model<IUser>("User", UserSchema);
