@@ -1,9 +1,11 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-export interface IUser {
+export interface IUser extends Document {
   username: string;
-  password: string;
+  displayName: string;
+  wallet: string;
   avatar?: string;
+  channels: string[];
   isOnline: boolean;
   lastSeen: Date;
 }
@@ -17,9 +19,22 @@ const UserSchema = new Schema<IUser>(
       trim: true,
       minlength: 3,
     },
+    displayName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 3,
+    },
+    wallet: {
+      type: String,
+    },
     avatar: {
       type: String,
       default: "",
+    },
+    channels: {
+      type: [String],
+      default: [],
     },
     isOnline: {
       type: Boolean,

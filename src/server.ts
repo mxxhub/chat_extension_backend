@@ -8,11 +8,9 @@ dotenv.config();
 const app: Application = express();
 const port: string = process.env.PORT || "3000";
 
-// Middleware
 app.use(express.json());
 
-// Register Routes
-app.use("/api", routes);
+app.use("/", routes);
 
 connectDataBase()
   .then(() => {

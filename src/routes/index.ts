@@ -4,5 +4,7 @@ import messageRoutes from "./messageRoutes";
 
 const app: Application = express();
 
-app.use("auth", authRoutes);
-app.use("messages", messageRoutes);
+app.use("/auth", authRoutes);
+app.use("/messages", messageRoutes);
+
+export default app;
