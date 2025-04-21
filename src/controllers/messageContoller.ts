@@ -5,8 +5,8 @@ import mongoose from "mongoose";
 
 export const getMessage = async (req: Request, res: Response) => {
   try {
-    const { room } = req.params;
-    const limit = parseInt(req.params.limit as string) || 50;
+    const { room } = req.body;
+    const limit = parseInt(req.body.limit as string) || 50;
     const messages = await Message.find({ room })
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -22,11 +22,12 @@ export const getMessage = async (req: Request, res: Response) => {
 
 export const saveMessage = async (req: Request, res: Response) => {
   try {
-    const { sender, content, room } = req.body;
+    const { content, room } = req.body;
+    console.log(req.body);
     const userId = req.body.id;
 
     if (!content || !room) {
-      return res.status(400).json({ message: "Content and room are required" });
+      res.status(400).json({ message: "Content and room are required" });
     }
 
     const newMessage = new Message({
@@ -36,12 +37,14 @@ export const saveMessage = async (req: Request, res: Response) => {
     });
 
     await newMessage.save();
-
+    console.log("new message id: ", newMessage._id);
     const populatedMessage = await Message.findById(newMessage._id)
-      .populate("sender", "username avatar")
+      .populate("sender", "userId avatar")
       .lean();
 
-    return res.status(201).json(populatedMessage);
+    console.log("populated message: ", populatedMessage);
+
+    res.status(201).json(populatedMessage);
   } catch (err) {
     console.log("Creating message error: ", err);
     res.status(500).json({ message: "Server error" });
@@ -50,15 +53,15 @@ export const saveMessage = async (req: Request, res: Response) => {
 
 export const getOnlineUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.find({
-      isOnline: true,
-    });
+    const users = await User.find({ isOnline: true })
+      .select("userId displayName avatar isOnline lastSeen")
+      .sort({ username: 1 });
 
     if (!users) {
-      return res.status(201).json({ message: "No user found" });
+      res.status(201).json({ message: "No user found" });
     }
 
-    res.status(400).json({ message: "succeed!" });
+    res.json(users);
   } catch (err) {
     console.log("Getting online users error: ", err);
     res.status(201).json({ message: "Getting online users error" });

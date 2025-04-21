@@ -3,9 +3,10 @@ import User from "../models/User";
 
 export const addUser = async (req: Request, res: Response) => {
   try {
-    const { username, displayName, wallet, avatar, channel } = req.body;
+    const { userId, displayName, wallet, avatar, channel } = req.body;
+    console.log(req.body);
 
-    let user = await User.findOne({ username });
+    let user = await User.findOne({ userId });
     if (user) {
       if (!user.channels.includes(channel)) {
         user.channels.push(channel);
@@ -15,7 +16,7 @@ export const addUser = async (req: Request, res: Response) => {
       res.status(200).json({
         message: "User updated",
         user: {
-          username: user.username,
+          userId: user.userId,
           displayName: user.displayName,
           wallet: user.wallet,
           avatar: user.avatar,
@@ -24,7 +25,7 @@ export const addUser = async (req: Request, res: Response) => {
       });
     } else {
       const newUser = new User({
-        username,
+        userId,
         displayName,
         wallet,
         avatar,
@@ -36,7 +37,8 @@ export const addUser = async (req: Request, res: Response) => {
       res.status(201).json({
         message: "User created",
         user: {
-          username: newUser.username,
+          id: newUser._id,
+          userId: newUser.userId,
           displayName: newUser.displayName,
           wallet: newUser.wallet,
           avatar: newUser.avatar,
