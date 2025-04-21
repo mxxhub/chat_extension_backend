@@ -21,7 +21,7 @@ const MessageSchema = new Schema<IMessage>(
     room: {
       type: String,
       required: true,
-      default: "",
+      default: "general",
     },
     timestamp: {
       type: Date,

@@ -51,3 +51,20 @@ export const addUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getOnlineUsers = async (req: Request, res: Response) => {
+  try {
+    const users = await User.find({ isOnline: true })
+      .select("userId displayName avatar isOnline lastSeen")
+      .sort({ username: 1 });
+
+    if (!users) {
+      res.status(201).json({ message: "No user found" });
+    }
+
+    res.json(users);
+  } catch (err) {
+    console.log("Getting online users error: ", err);
+    res.status(201).json({ message: "Getting online users error" });
+  }
+};

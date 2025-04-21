@@ -1,0 +1,114 @@
+import { Socket, Server } from "socket.io";
+import User from "../models/User";
+import Message from "../models/Message";
+import mongoose from "mongoose";
+
+interface DecodedToken {
+  id: string;
+  userId: string;
+  iat: number;
+  exp: number;
+}
+
+interface SocketUser {
+  userId: string;
+  displayName: string;
+  socketId: string;
+}
+
+export default (io: Server) => {
+  const connectedUsers: Map<string, SocketUser> = new Map();
+
+  io.use((socket: Socket, next) => {
+    const token = socket.handshake.auth.token;
+
+    if (!token) {
+      return next(new Error("Authentication error"));
+    }
+  });
+
+  io.on("connection", async (socket: Socket) => {
+    try {
+      const userId = socket.userId;
+
+      const displayName = socket.displayName;
+
+      await User.findByIdAndUpdate(userId, {
+        isOnline: true,
+        lastSeen: new Date(),
+      });
+
+      connectedUsers.set(userId, {
+        userId,
+        displayName,
+        socketId: socket.id,
+      });
+
+      // Broadcast user online status
+      io.emit("user:status", {
+        userId,
+        displayName,
+        isOnline: true,
+      });
+
+      socket.on("join:room", (room) => {
+        socket.join(room);
+        console.log(`${displayName} joined room: ${room}`);
+      });
+
+      socket.on("leave:room", (room) => {
+        socket.leave(room);
+        console.log(`${displayName} left room: ${room}`);
+      });
+
+      socket.on("message:new", async (data) => {
+        try {
+          const { content, room } = data;
+
+          const message = new Message({
+            sender: new mongoose.Types.ObjectId(userId),
+            content,
+            room,
+          });
+
+          await message.save();
+
+          const populatedMessage = await Message.findById(message._id)
+            .populate("sender", "userId avatar")
+            .lean();
+
+          io.to(room).emit("message:received", populatedMessage);
+        } catch (err) {
+          console.log("socket message: new error: ", err);
+        }
+      });
+
+      socket.on("typing:start", (room) => {
+        socket.to(room).emit("user:typing", { userId, displayName, room });
+      });
+
+      socket.on("disconnect", async () => {
+        try {
+          await User.findByIdAndUpdate(userId, {
+            isOnline: false,
+            lastSeen: new Date(),
+          });
+
+          connectedUsers.delete(userId);
+
+          io.emit("user:status", {
+            userId,
+            displayName,
+            isOnline: false,
+          });
+
+          console.log(`User disconnected: ${displayName} (${userId})`);
+        } catch (err) {
+          console.log("Socket disconnect error: ", err);
+        }
+      });
+    } catch (err) {
+      console.log("Socket error: ", err);
+    }
+  });
+};
