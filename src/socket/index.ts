@@ -87,14 +87,16 @@ export default (io: Server) => {
 
       socket.on(
         "message:new",
-        async (data: { content: string; room: string }) => {
+        async (data: { content: string; room: string; timestamp: string }) => {
+          console.log("new message detected");
           try {
-            const { content, room } = data;
+            const { content, room, timestamp } = data;
 
             const message = new Message({
               sender: new mongoose.Types.ObjectId(userId),
               content,
               room,
+              timestamp,
             });
 
             await message.save();
@@ -102,8 +104,11 @@ export default (io: Server) => {
             const populatedMessage = await Message.findById(message._id)
               .populate("sender", "userId avatar")
               .lean();
+            console.log(room);
+            console.log(populatedMessage);
 
-            io.to(room).emit("message:received", populatedMessage);
+            // io.to(room).emit("message:received", populatedMessage);
+            io.emit("message:received", populatedMessage);
           } catch (err) {
             console.log("socket message: new error: ", err);
           }
@@ -111,6 +116,7 @@ export default (io: Server) => {
       );
 
       socket.on("typing:start", (room) => {
+        console.log("someone is typing");
         socket.to(room).emit("user:typing", { displayName, room });
       });
 

@@ -24,8 +24,8 @@ const MessageSchema = new Schema<IMessage>(
       default: "general",
     },
     timestamp: {
-      type: Date,
-      default: Date.now,
+      type: String,
+      default: "",
     },
   },
   {

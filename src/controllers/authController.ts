@@ -16,6 +16,12 @@ export const addUser = async (req: Request, res: Response) => {
         await user.save();
       }
 
+      const token = jwt.sign(
+        { id: user._id, userId: user.userId },
+        JWT_SECRET,
+        { expiresIn: "30d" }
+      );
+
       res.status(200).json({
         message: "User updated",
         user: {
@@ -25,6 +31,7 @@ export const addUser = async (req: Request, res: Response) => {
           avatar: user.avatar,
           channels: user.channels,
         },
+        token,
       });
     } else {
       const newUser = new User({

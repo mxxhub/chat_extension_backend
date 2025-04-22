@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import Message from "../models/Message";
-import User from "../models/User";
 import mongoose from "mongoose";
 
 export const getMessage = async (req: Request, res: Response) => {
@@ -10,7 +9,7 @@ export const getMessage = async (req: Request, res: Response) => {
     const messages = await Message.find({ room })
       .sort({ createdAt: -1 })
       .limit(limit)
-      .populate("sender", "username avatar")
+      .populate("sender", "userId avatar")
       .lean();
 
     res.json(messages.reverse());
