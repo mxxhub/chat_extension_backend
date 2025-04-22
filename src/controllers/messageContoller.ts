@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Message from "../models/Message";
+import { Message } from "../models";
 import mongoose from "mongoose";
 
 export const getMessage = async (req: Request, res: Response) => {

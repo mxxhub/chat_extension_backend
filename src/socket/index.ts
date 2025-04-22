@@ -1,6 +1,5 @@
 import { Socket, Server } from "socket.io";
-import User from "../models/User";
-import Message from "../models/Message";
+import { User, Message } from "../models";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";

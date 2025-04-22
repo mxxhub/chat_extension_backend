@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import User from "../models/User";
+import { User } from "../models";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "Bear_";
