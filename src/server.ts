@@ -20,7 +20,7 @@ const options = {
 
 app.use(
   cors({
-    // origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: "*",
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -34,7 +34,7 @@ const server = https.createServer(options, app);
 
 const io = new Server(server, {
   cors: {
-    // origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: "*",
     methods: ["GET", "POST"],
     // credentials: true,
   },
