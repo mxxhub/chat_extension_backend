@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import User from "../models/User";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "Bear_";
 
 export const addUser = async (req: Request, res: Response) => {
   try {
@@ -34,6 +37,12 @@ export const addUser = async (req: Request, res: Response) => {
 
       await newUser.save();
 
+      const token = jwt.sign(
+        { id: newUser._id, userId: newUser.userId },
+        JWT_SECRET,
+        { expiresIn: "30d" }
+      );
+
       res.status(201).json({
         message: "User created",
         user: {
@@ -44,6 +53,7 @@ export const addUser = async (req: Request, res: Response) => {
           avatar: newUser.avatar,
           channel: newUser.channels,
         },
+        token,
       });
     }
   } catch (err) {

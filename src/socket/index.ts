@@ -2,10 +2,23 @@ import { Socket, Server } from "socket.io";
 import User from "../models/User";
 import Message from "../models/Message";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const JWT_SECRET = process.env.JWT_SECRET || "Bear_";
+
+declare module "socket.io" {
+  interface Socket {
+    userId: string;
+    displayName: string;
+  }
+}
 
 interface DecodedToken {
   id: string;
-  userId: string;
+  displayName: string;
   iat: number;
   exp: number;
 }
@@ -24,6 +37,17 @@ export default (io: Server) => {
 
     if (!token) {
       return next(new Error("Authentication error"));
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
+
+      socket.userId = decoded.id;
+      socket.displayName = decoded.displayName;
+
+      next();
+    } catch (err) {
+      next(new Error("Authentication error."));
     }
   });
 
@@ -61,30 +85,33 @@ export default (io: Server) => {
         console.log(`${displayName} left room: ${room}`);
       });
 
-      socket.on("message:new", async (data) => {
-        try {
-          const { content, room } = data;
+      socket.on(
+        "message:new",
+        async (data: { content: string; room: string }) => {
+          try {
+            const { content, room } = data;
 
-          const message = new Message({
-            sender: new mongoose.Types.ObjectId(userId),
-            content,
-            room,
-          });
+            const message = new Message({
+              sender: new mongoose.Types.ObjectId(userId),
+              content,
+              room,
+            });
 
-          await message.save();
+            await message.save();
 
-          const populatedMessage = await Message.findById(message._id)
-            .populate("sender", "userId avatar")
-            .lean();
+            const populatedMessage = await Message.findById(message._id)
+              .populate("sender", "userId avatar")
+              .lean();
 
-          io.to(room).emit("message:received", populatedMessage);
-        } catch (err) {
-          console.log("socket message: new error: ", err);
+            io.to(room).emit("message:received", populatedMessage);
+          } catch (err) {
+            console.log("socket message: new error: ", err);
+          }
         }
-      });
+      );
 
       socket.on("typing:start", (room) => {
-        socket.to(room).emit("user:typing", { userId, displayName, room });
+        socket.to(room).emit("user:typing", { displayName, room });
       });
 
       socket.on("disconnect", async () => {
