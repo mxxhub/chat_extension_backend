@@ -32,10 +32,7 @@ const UserSchema = new Schema<IUser>(
       type: String,
       default: "",
     },
-    channels: {
-      type: [String],
-      default: [],
-    },
+    channels: [{ type: String }],
     isOnline: {
       type: Boolean,
       default: false,
