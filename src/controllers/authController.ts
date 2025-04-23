@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { User } from "../models";
+import User from "../models/User";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "Bear_";
@@ -17,7 +17,7 @@ export const addUser = async (req: Request, res: Response) => {
       }
 
       const token = jwt.sign(
-        { id: user._id, userId: user.userId },
+        { id: user._id, userId: user.userId, displayName: user.displayName },
         JWT_SECRET,
         { expiresIn: "30d" }
       );
@@ -25,11 +25,13 @@ export const addUser = async (req: Request, res: Response) => {
       res.status(200).json({
         message: "User updated",
         user: {
+          id: user._id,
           userId: user.userId,
           displayName: user.displayName,
           wallet: user.wallet,
           avatar: user.avatar,
           channels: user.channels,
+          bio: user.bio,
         },
         token,
       });
@@ -45,7 +47,11 @@ export const addUser = async (req: Request, res: Response) => {
       await newUser.save();
 
       const token = jwt.sign(
-        { id: newUser._id, userId: newUser.userId },
+        {
+          id: newUser._id,
+          userId: newUser.userId,
+          displayName: newUser.displayName,
+        },
         JWT_SECRET,
         { expiresIn: "30d" }
       );
@@ -59,6 +65,7 @@ export const addUser = async (req: Request, res: Response) => {
           wallet: newUser.wallet,
           avatar: newUser.avatar,
           channel: newUser.channels,
+          bio: newUser.bio,
         },
         token,
       });
@@ -69,6 +76,31 @@ export const addUser = async (req: Request, res: Response) => {
   }
 };
 
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const { _id, userId, displayName, wallet, bio } = req.body;
+    console.log("update user: ", req.body);
+
+    const user = await User.findOneAndUpdate(
+      { _id },
+      {
+        userId,
+        displayName,
+        wallet,
+        bio,
+      }
+    );
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "User updated" });
+  } catch (err) {
+    console.log("Update user error: ", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 export const getOnlineUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.find({ isOnline: true })
