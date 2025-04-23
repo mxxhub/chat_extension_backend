@@ -11,6 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "Bear_";
 declare module "socket.io" {
   interface Socket {
     userId: string;
+    username: string;
     displayName: string;
   }
 }
@@ -18,12 +19,14 @@ declare module "socket.io" {
 interface DecodedToken {
   id: string;
   displayName: string;
+  userId: string;
   iat: number;
   exp: number;
 }
 
 interface SocketUser {
   userId: string;
+  username: string;
   displayName: string;
   socketId: string;
 }
@@ -42,6 +45,8 @@ export default (io: Server) => {
       const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
 
       socket.userId = decoded.id;
+      socket.username = decoded.userId;
+      console.log(decoded);
       socket.displayName = decoded.displayName;
 
       next();
@@ -53,8 +58,8 @@ export default (io: Server) => {
   io.on("connection", async (socket: Socket) => {
     try {
       const userId = socket.userId;
-
       const displayName = socket.displayName;
+      const username = socket.username;
 
       await User.findByIdAndUpdate(userId, {
         isOnline: true,
@@ -63,6 +68,7 @@ export default (io: Server) => {
 
       connectedUsers.set(userId, {
         userId,
+        username,
         displayName,
         socketId: socket.id,
       });
@@ -70,18 +76,41 @@ export default (io: Server) => {
       // Broadcast user online status
       io.emit("user:status", {
         userId,
+        username,
         displayName,
         isOnline: true,
       });
 
-      socket.on("join:room", (room) => {
+      socket.on("join:room", async (room) => {
         socket.join(room);
+        let user = await User.findOne({ userId: username });
+        if (user) {
+          if (!user.channels.includes(room)) {
+            user.channels.push(room);
+            await user.save();
+          }
+        }
         console.log(`${displayName} joined room: ${room}`);
       });
 
-      socket.on("leave:room", (room) => {
+      socket.on("leave:room", async (room) => {
         socket.leave(room);
+        console.log(username);
         console.log(`${displayName} left room: ${room}`);
+        let user = await User.findOne({ userId: username });
+
+        if (user) {
+          await User.findByIdAndUpdate(
+            {
+              _id: userId,
+            },
+            {
+              $pull: {
+                channels: room,
+              },
+            }
+          );
+        }
       });
 
       socket.on(
@@ -93,6 +122,7 @@ export default (io: Server) => {
 
             const message = new Message({
               sender: new mongoose.Types.ObjectId(userId),
+              username,
               content,
               room,
               timestamp,
@@ -103,11 +133,10 @@ export default (io: Server) => {
             const populatedMessage = await Message.findById(message._id)
               .populate("sender", "userId avatar")
               .lean();
-            console.log(room);
             console.log(populatedMessage);
 
-            // io.to(room).emit("message:received", populatedMessage);
-            io.emit("message:received", populatedMessage);
+            io.to(room).emit("message:received", populatedMessage);
+            // io.emit("message:received", populatedMessage);
           } catch (err) {
             console.log("socket message: new error: ", err);
           }
@@ -115,7 +144,7 @@ export default (io: Server) => {
       );
 
       socket.on("typing:start", (room) => {
-        console.log("someone is typing");
+        console.log(`someone is typing in ${room}`);
         socket.to(room).emit("user:typing", { displayName, room });
       });
 
@@ -130,6 +159,7 @@ export default (io: Server) => {
 
           io.emit("user:status", {
             userId,
+            username,
             displayName,
             isOnline: false,
           });
