@@ -1,5 +1,6 @@
 import { Socket, Server } from "socket.io";
-import { User, Message } from "../models";
+import User from "../models/User";
+import Message from "../models/Message";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -46,7 +47,6 @@ export default (io: Server) => {
 
       socket.userId = decoded.id;
       socket.username = decoded.userId;
-      console.log(decoded);
       socket.displayName = decoded.displayName;
 
       next();
@@ -81,21 +81,24 @@ export default (io: Server) => {
         isOnline: true,
       });
 
-      socket.on("join:room", async (room) => {
-        socket.join(room);
-        let user = await User.findOne({ userId: username });
+      socket.on("join:room", async (data) => {
+        socket.join(data.tokenAdd);
+        const user = await User.findOne({ userId: username });
         if (user) {
-          if (!user.channels.includes(room)) {
-            user.channels.push(room);
+          const alreadyJoined = user.channels.some(
+            (c) => c.tokenAdd === data.tokenAdd
+          );
+
+          if (!alreadyJoined) {
+            user.channels.push(data);
             await user.save();
           }
         }
-        console.log(`${displayName} joined room: ${room}`);
+        console.log(`${displayName} joined room: ${data.tokenAdd}`);
       });
 
       socket.on("leave:room", async (room) => {
         socket.leave(room);
-        console.log(username);
         console.log(`${displayName} left room: ${room}`);
         let user = await User.findOne({ userId: username });
 
@@ -133,10 +136,8 @@ export default (io: Server) => {
             const populatedMessage = await Message.findById(message._id)
               .populate("sender", "userId avatar")
               .lean();
-            console.log(populatedMessage);
 
             io.to(room).emit("message:received", populatedMessage);
-            // io.emit("message:received", populatedMessage);
           } catch (err) {
             console.log("socket message: new error: ", err);
           }
@@ -144,6 +145,7 @@ export default (io: Server) => {
       );
 
       socket.on("typing:start", (room) => {
+        console.log(socket.rooms);
         console.log(`someone is typing in ${room}`);
         socket.to(room).emit("user:typing", { displayName, room });
       });
