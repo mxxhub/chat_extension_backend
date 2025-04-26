@@ -14,7 +14,7 @@ export const addUser = async (req: Request, res: Response) => {
       const alreadyExists = user.channels.some(
         (c) => c.tokenAdd === channel.tokenAdd
       );
-      if (!alreadyExists) {
+      if (!alreadyExists && channel.tokenAdd !== "") {
         user.channels.push(channel);
         await user.save();
       }
@@ -90,6 +90,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const { _id, userId, displayName, wallet, bio } = req.body;
