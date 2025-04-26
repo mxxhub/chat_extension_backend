@@ -102,17 +102,18 @@ export default (io: Server) => {
         console.log(`${displayName} left room: ${room}`);
         let user = await User.findOne({ userId: username });
 
+        console.log("user: ", user);
         if (user) {
-          await User.findByIdAndUpdate(
+          await User.findOneAndUpdate(
             {
-              _id: userId,
+              userId: username,
             },
             {
               $pull: {
-                channels: room,
+                channels: { tokenAdd: room },
               },
             }
-          );
+          ).exec();
         }
       });
 
