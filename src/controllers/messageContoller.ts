@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Message } from "../models";
+import Message from "../models/Message";
 import mongoose from "mongoose";
 
 export const getMessage = async (req: Request, res: Response) => {
@@ -22,7 +22,6 @@ export const getMessage = async (req: Request, res: Response) => {
 export const saveMessage = async (req: Request, res: Response) => {
   try {
     const { content, room } = req.body;
-    console.log(req.body);
     const userId = req.body.id;
 
     if (!content || !room) {
@@ -36,12 +35,9 @@ export const saveMessage = async (req: Request, res: Response) => {
     });
 
     await newMessage.save();
-    console.log("new message id: ", newMessage._id);
     const populatedMessage = await Message.findById(newMessage._id)
       .populate("sender", "userId avatar")
       .lean();
-
-    console.log("populated message: ", populatedMessage);
 
     res.status(201).json(populatedMessage);
   } catch (err) {

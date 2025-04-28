@@ -2,8 +2,8 @@ import express, { Application } from "express";
 import dotenv from "dotenv";
 import routes from "./routes/index";
 import { connectDataBase } from "./config/db";
-import https from "https";
-import fs from "fs";
+import http from "http";
+// import fs from "fs";
 import { Server } from "socket.io";
 import setupSocketIO from "./socket";
 import cors from "cors";
@@ -13,16 +13,16 @@ dotenv.config();
 const app: Application = express();
 const port: number = Number(process.env.PORT) || 4000;
 
-const options = {
-  key: fs.readFileSync("/etc/letsencrypt/privkey.pem"),
-  cert: fs.readFileSync("/etc/letsencrypt/cert.pem"),
-};
+// const options = {
+//   key: fs.readFileSync("/etc/letsencrypt/privkey.pem"),
+//   cert: fs.readFileSync("/etc/letsencrypt/cert.pem"),
+// };
 
 app.use(
   cors({
     origin: "*",
     methods: ["GET", "POST"],
-    credentials: true,
+    // credentials: true,
   })
 );
 
@@ -30,7 +30,7 @@ app.use(express.json());
 
 app.use("/", routes);
 
-const server = https.createServer(options, app);
+const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
