@@ -88,11 +88,10 @@ export default (io: Server) => {
           const alreadyJoined = user.channels.some(
             (c) => c.tokenAdd === data.tokenAdd
           );
+          if (alreadyJoined) return;
 
-          if (!alreadyJoined) {
-            user.channels.push(data);
-            await user.save();
-          }
+          user.channels.push(data);
+          await user.save();
         }
         console.log(`${displayName} joined room: ${data.tokenAdd}`);
       });
