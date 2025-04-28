@@ -45,3 +45,55 @@ export const saveMessage = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const editMessage = async (req: Request, res: Response) => {
+  try {
+    const { editor, content, id } = req.body;
+    if (!content || !id) {
+      res.status(400).json({ message: "Content and id are required" });
+    }
+
+    const updatedMessage = await Message.findOneAndUpdate(
+      { _id: id, sender: editor },
+      { content },
+      { new: true }
+    ).lean();
+
+    if (!updatedMessage) {
+      res.status(403).json({
+        message: "you cann't change this message or message not found",
+      });
+    }
+
+    res.status(200).json(updatedMessage);
+  } catch (err) {
+    console.log("editing message error: ", err);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+export const deleteMessage = async (req: Request, res: Response) => {
+  try {
+    const { editor, id } = req.body;
+    if (!id) {
+      res.status(400).json({ message: "id is required" });
+    }
+
+    const deletedMessage = await Message.findOneAndDelete({
+      _id: id,
+      sender: editor,
+    });
+
+    if (!deletedMessage) {
+      res
+        .status(403)
+        .json({ message: "you can delete this message or message not found" });
+      console.log("you can delete this message or message not found");
+    }
+
+    res.status(200).json(deletedMessage);
+  } catch (err) {
+    console.log("deleting message error: ", err);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
