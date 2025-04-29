@@ -74,7 +74,7 @@ export const editMessage = async (req: Request, res: Response) => {
 
 export const deleteMessage = async (req: Request, res: Response) => {
   try {
-    const { editor, id } = req.body;
+    const { editor, id, room } = req.body;
     if (!id) {
       res.status(400).json({ message: "id is required" });
     }
@@ -82,14 +82,13 @@ export const deleteMessage = async (req: Request, res: Response) => {
     const deletedMessage = await Message.findOneAndDelete({
       _id: id,
       sender: editor,
+      room: room,
     });
 
     if (!deletedMessage) {
-      res
-        .status(403)
-        .json({
-          message: "you can't delete this message or message not found",
-        });
+      res.status(403).json({
+        message: "you can't delete this message or message not found",
+      });
       console.log("you can delete this message or message not found");
     }
 
