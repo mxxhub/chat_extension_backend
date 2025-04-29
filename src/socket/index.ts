@@ -88,7 +88,7 @@ export default (io: Server) => {
           const alreadyJoined = user.channels.some(
             (c) => c.tokenAdd === data.tokenAdd
           );
-          if (alreadyJoined) return;
+          if (alreadyJoined || !data.tokenAdd) return;
 
           user.channels.push(data);
           await user.save();
