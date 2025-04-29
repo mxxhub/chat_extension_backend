@@ -87,7 +87,9 @@ export const deleteMessage = async (req: Request, res: Response) => {
     if (!deletedMessage) {
       res
         .status(403)
-        .json({ message: "you can delete this message or message not found" });
+        .json({
+          message: "you can't delete this message or message not found",
+        });
       console.log("you can delete this message or message not found");
     }
 
