@@ -26,7 +26,7 @@ export const addUser = async (req: Request, res: Response) => {
       res.status(200).json({
         message: "User updated",
         user: {
-          id: user._id,
+          _id: user._id,
           userId: user.userId,
           displayName: user.displayName,
           wallet: user.wallet,
@@ -49,7 +49,7 @@ export const addUser = async (req: Request, res: Response) => {
 
       const token = jwt.sign(
         {
-          id: newUser._id,
+          _id: newUser._id,
           userId: newUser.userId,
           displayName: newUser.displayName,
         },
