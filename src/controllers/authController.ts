@@ -106,11 +106,20 @@ export const updateUser = async (req: Request, res: Response) => {
       }
     );
 
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return;
 
-    res.status(200).json({ message: "User updated" });
+    res.status(200).json({
+      message: "User updated",
+      user: {
+        _id: user._id,
+        userId: user.userId,
+        displayName: user.displayName,
+        wallet: user.wallet,
+        avatar: user.avatar,
+        channels: user.channels,
+        bio: user.bio,
+      },
+    });
   } catch (err) {
     console.log("Update user error: ", err);
     res.status(500).json({ message: "Server error" });

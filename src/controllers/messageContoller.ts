@@ -48,13 +48,14 @@ export const saveMessage = async (req: Request, res: Response) => {
 
 export const editMessage = async (req: Request, res: Response) => {
   try {
-    const { editor, content, id } = req.body;
+    const { id, content } = req.body;
+    console.log("editing message", req.body);
     if (!content || !id) {
       res.status(400).json({ message: "Content and id are required" });
     }
 
-    const updatedMessage = await Message.findOneAndUpdate(
-      { _id: id, sender: editor },
+    const updatedMessage = await Message.findByIdAndUpdate(
+      id,
       { content },
       { new: true }
     ).lean();
@@ -64,6 +65,7 @@ export const editMessage = async (req: Request, res: Response) => {
         message: "you cann't change this message or message not found",
       });
     }
+    console.log("updated message", updatedMessage);
 
     res.status(200).json(updatedMessage);
   } catch (err) {
