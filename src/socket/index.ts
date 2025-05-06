@@ -83,6 +83,12 @@ export default (io: Server) => {
 
       socket.on("join:room", async (data) => {
         // when data = {tokenAdd: "0x1234567890"} -> function will be called
+        if (data.toString().startsWith("0x")) {
+          console.log("first tokenAdd: ", data);
+          console.log("join:room", data);
+          await socket.join(data);
+        }
+
         console.log("join:room", data);
         await socket.join(data.tokenAdd);
         const user = await User.findOne({ userId: username });
