@@ -82,7 +82,9 @@ export default (io: Server) => {
       });
 
       socket.on("join:room", async (data) => {
-        socket.join(data.tokenAdd);
+        // when data = {tokenAdd: "0x1234567890"} -> function will be called
+        console.log("join:room", data);
+        await socket.join(data.tokenAdd);
         const user = await User.findOne({ userId: username });
         if (user) {
           const alreadyJoined = user.channels.some(
