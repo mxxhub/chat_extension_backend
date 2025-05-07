@@ -1,10 +1,15 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface Channel {
+  chainId: string;
   name: string;
   symbol: string;
-  image: string;
   tokenAdd: string;
+  image: string;
+  banner: string;
+  twitter?: string;
+  website?: string;
+  marketCap?: string;
 }
 
 export interface IUser extends Document {
@@ -19,10 +24,15 @@ export interface IUser extends Document {
 }
 
 const ChannelSchema = new Schema<Channel>({
+  chainId: String,
   name: String,
-  image: String,
-  tokenAdd: String,
   symbol: String,
+  tokenAdd: String,
+  image: String,
+  banner: String,
+  twitter: String,
+  website: String,
+  marketCap: String,
 });
 
 const UserSchema = new Schema<IUser>(
