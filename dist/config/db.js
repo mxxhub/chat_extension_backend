@@ -8,6 +8,8 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const connectDataBase = async () => {
+    const mongoUrl = process.env.DATABASE ||
+        "mongodb+srv://dignitymine:fE4hjllQGJX5tHQ1@cluster0.i2mqk8z.mongodb.net/chatExtension";
     if (mongoose_1.default.connection.readyState === 1) {
         console.log("Already connected to MongoDB!");
         return;
@@ -18,7 +20,7 @@ const connectDataBase = async () => {
             retryReads: true,
         };
         mongoose_1.default.set("strictQuery", true);
-        const result = await mongoose_1.default.connect("mongodb+srv://dignitymine:fE4hjllQGJX5tHQ1@cluster0.i2mqk8z.mongodb.net/chatExtension", options);
+        const result = await mongoose_1.default.connect(mongoUrl, options);
         if (result) {
             console.log("MongoDB connected successfully!");
         }

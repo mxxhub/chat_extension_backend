@@ -155,7 +155,8 @@ export default (io: Server) => {
       socket.on("typing:start", (room) => {
         console.log(socket.rooms);
         console.log(`someone is typing in ${room}`);
-        socket.to(room).emit("user:typing", { displayName, room });
+        // socket.to(room).emit("user:typing", { displayName, room });
+        socket.emit("user:typing", { displayName, room });
       });
 
       socket.on("disconnect", async () => {
